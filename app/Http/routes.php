@@ -11,9 +11,11 @@
 |
 */
 
+/*
 Route::get('/', function () {
     return view('welcome');
 });
+*/
 
 /*
 |--------------------------------------------------------------------------
@@ -27,5 +29,21 @@ Route::get('/', function () {
 */
 
 Route::group(['middleware' => ['web']], function () {
-    //
+    // Default route
+    Route::get('/', function(){ return view('splashpage'); });
+
+    // Authentication routes
+    Route::get('/login', 'Auth\AuthController@getLogin');
+    Route::post('/login', 'Auth\AuthController@postLogin');
+    Route::get('/logout', 'Auth\AuthController@getLogout');
+
+    // Registration routes
+    Route::get('/register', 'Auth\AuthController@getRegister');
+    Route::post('/register', 'Auth\AuthController@postRegister');
+
+    // Post-Authentication Homepage
+    Route::get('/home', function(){ return view('home'); });
+
+    // Manage Groups
+    Route::get('/groups', function(){ return view('groups'); });
 });
