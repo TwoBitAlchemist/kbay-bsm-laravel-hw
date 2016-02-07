@@ -5,6 +5,11 @@ You will design an application that will manage bookmarks for your PHP websites.
 
 ## User Management (CRUD)
 
+1. Ability to add, edit, manage (delete), invite Users (CRUD)
+2. Ability to add, edit, manage (delete) User Groups (CRUD)
+
+## Bookmarks
+
 1. Ability to add, edit, manage (delete) Bookmarks (CRUD)
 2. Ability to add, edit, manage (delete) Bookmark Categories (CRUD)
 3. Bonus: Ability to share bookmark with other email addresses
