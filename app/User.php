@@ -32,9 +32,9 @@ class User extends Authenticatable
     }
 
     /**
-     * M2M relation with Category
+     * 12M relation with Category
      */
     public function categories(){
-        return $this->belongsToMany('App\Category', 'user_categories');
+        return $this->hasMany('App\Category');
     }
 }

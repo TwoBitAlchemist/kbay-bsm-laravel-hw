@@ -8,7 +8,10 @@
   @foreach ($groups as $group)
     <li>
       <dl>
-        <dt><a href="/edit-group/{{ $group->id }}">{{ $group->name }}</a></dt>
+        <dt>
+            <a href="{{ url('join-group', [$group->id]) }}">
+                {{ $group->name }}</a>
+        </dt>
         <dd>{{ $group->description }}</dd>
       </dl>
     </li>

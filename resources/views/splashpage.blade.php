@@ -13,7 +13,10 @@
 @section('content')
 <div class="row">
   <div class="col-xs-5 col-xs-push-1" id="login_frame">
-  <h2 class="text-center">Existing Users</h2>
+  <h2 class="text-center">
+  Existing Users<br>
+  <small><a href="/password/email">Forgot password?</a></small>
+  </h2>
     <iframe src="{{ url('login') }}">
       Your browser is configured not to support iframes.<br>
       <a href="{{ url('login') }}">Go to Login page</a>

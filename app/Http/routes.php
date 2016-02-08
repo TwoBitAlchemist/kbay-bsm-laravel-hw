@@ -9,6 +9,7 @@
 | kernel and includes session state, CSRF protection, and more.
 |
 */
+use App\Bookmark;
 use App\Category;
 use App\Group;
 use App\User;
@@ -27,19 +28,55 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/register', 'Auth\AuthController@getRegister');
     Route::post('/register', 'Auth\AuthController@postRegister');
 
+    // Password reset link request routes
+    Route::get('/password/email', 'Auth\PasswordController@getEmail');
+    Route::post('/password/email', 'Auth\PasswordController@postEmail');
+
+    // Password reset routes
+    Route::get('/password/reset/{token}', 'Auth\PasswordController@getReset');
+    Route::post('/password/reset', 'Auth\PasswordController@postReset');
+
     // Post-Authentication Homepage
     Route::get('/home', function(){
         $groups = Group::whereHas('users', function($q){
             $q->where('id', '=', Auth::id());
         })->get();
-        $categories = Category::whereHas('users', function($q){
-            $q->where('id', '=', Auth::id());
-        })->get();
 
         return view('home', [
             'groups' => $groups,
-            'categories' => $categories,
+            'categories' => Auth::user()->categories()->get(),
         ]);
+    });
+
+    // Manage User
+    /**
+     * GET /edit-account
+     * Present form to update name or email for authenticated user
+     * Change password link will be provided
+     */
+    Route::get('/edit-account', function(){
+        return view('edit-account', [ 'user' => Auth::user() ]);
+    });
+    /**
+     * POST /edit-account
+     * Update name or email for authenticated user
+     */
+    Route::post('/edit-account', function(Request $request){
+        $v = Validator::make($request->all(), [
+            'name' => 'required|max:255',
+            'email' => 'required|max:255',
+        ]);
+
+        if ($v->fails()){
+            return redirect()->back()->withInput()->withErrors($v);
+        }
+
+        $user = Auth::user();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
+
+        return redirect()->back();
     });
 
     // Manage Groups
@@ -79,6 +116,16 @@ Route::group(['middleware' => ['web']], function () {
         return redirect()->back();
     });
     /**
+     * DELETE /group/{id}
+     * Delete the group corresponding to {id}
+     */
+    Route::delete('/group/{id}', function($id){
+        $group = Group::findOrFail($id);
+        $group->users()->where('id', '=', Auth::id())->detach();
+
+        return redirect('/groups');
+    });
+    /**
      * GET /join-groups
      * List all groups
      */
@@ -86,6 +133,18 @@ Route::group(['middleware' => ['web']], function () {
         $groups = Group::all();
 
         return view('join-groups', ['groups' => $groups]);
+    });
+    /**
+     * POST /join-group/{id}
+     * Add authenticated user to group corresponding to {id}
+     */
+    Route::get('/join-group/{id}', function($id){
+        $group = Group::findOrFail($id);
+        $group->users()->save(Auth::user());
+
+        $groups = Group::all();
+
+        return redirect('/groups');
     });
     /**
      * GET /edit-group/{id}
@@ -141,8 +200,8 @@ Route::group(['middleware' => ['web']], function () {
         $category = new Category;
         $category->name = $request->name;
         $category->description = trim($request->description);
+        $category->user_id = Auth::id();
         $category->save();
-        $category->users()->save(Auth::user());
 
         return redirect('/home');
     });
@@ -157,6 +216,7 @@ Route::group(['middleware' => ['web']], function () {
 
         return view('edit-category', [
             'category' => $category,
+            'bookmarks' => $category->bookmarks()->get(),
         ]);
     });
     /**
@@ -188,6 +248,78 @@ Route::group(['middleware' => ['web']], function () {
         $category = Category::findOrFail($id);
         $category->users()->detach();
         $category->delete();
+        return redirect('/home');
+    });
+
+
+    // Manage Bookmarks
+    /**
+     * POST /add-bookmark
+     * Create new Bookmark in selected Category
+     */
+    Route::post('/add-bookmark', function(Request $request){
+        $category = Category::findOrFail($request->category_id);
+        $v = Validator::make($request->all(), [
+            'name' => 'required|max:255',
+            'url' => 'required|max:255',
+        ]);
+
+        if ($v->fails()){
+            return redirect()->back()->withInput()->withErrors($v);
+        }
+
+        $bookmark = new Bookmark;
+        $bookmark->name = $request->name;
+        $bookmark->url = $request->url;
+        $bookmark->description = trim($request->description);
+        $bookmark->user_id = Auth::id();
+        $bookmark->save();
+        $bookmark->categories()->save($category);
+
+        return redirect()->back();
+    });
+    /**
+     * GET /edit-bookmark/{id}
+     * Present edit form for bookmark corresponding to {id}
+     */
+    Route::get('/edit-bookmark/{id}', function($id){
+        $bookmark = Bookmark::findOrFail($id);
+
+        return view('edit-bookmark', [
+            'bookmark' => $bookmark,
+        ]);
+    });
+    /**
+     * POST /edit-bookmark
+     * Update name, description, and urls for bookmark with specified {id}
+     */
+    Route::post('/edit-bookmark', function(Request $request){
+        $bookmark = Bookmark::findOrFail($request->id);
+
+        $v = Validator::make($request->all(), [
+            'name' => 'required|max:255',
+            'url' => 'required|max:255',
+        ]);
+
+        if ($v->fails()){
+            return redirect()->back()->withInput()->withErrors($v);
+        }
+
+        $bookmark->name = $request->name;
+        $bookmark->url = $request->url;
+        $bookmark->description = trim($request->description);
+        $bookmark->save();
+
+        return redirect('/home');
+    });
+    /**
+     * DELETE /bookmark/{id}
+     * Delete the bookmark at the associated {id}
+     */
+    Route::delete('/bookmark/{id}', function($id){
+        $bookmark = Bookmark::findOrFail($id);
+        $bookmark->categories()->detach();
+        $bookmark->delete();
         return redirect('/home');
     });
 });

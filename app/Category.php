@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model
 {
     /**
-     * M2M relation with User
+     * M2M relation with Bookmark
      */
-    public function users(){
-        return $this->belongsToMany('App\User', 'user_categories');
+    public function bookmarks(){
+        return $this->belongsToMany('App\Bookmark', 'bookmark_categories');
     }
 }
