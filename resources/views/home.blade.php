@@ -2,13 +2,12 @@
 
 @section('title', 'Home')
 @section('content')
-<div id="groups">
-  <h3>Groups</h3>
-  <p>You are currently a member of
-     <a href="{{ url('groups') }}">0 groups</a>.</p>
-  <ul id="group-options">
-    <li>Create a Group</li>
-    <li>Join a Group</li>
-  </ul>
-</div>{{-- #groups --}}
+<div class="row">
+  <div id="main" class="col-xs-8">
+    @include('home.category-view')
+  </div>{{-- #main --}}
+  <div id="sidebar" class="col-xs-4">
+    @include('home.sidebar')
+  </div>{{-- #sidebar --}}
+</div>{{-- .row --}}
 @endsection

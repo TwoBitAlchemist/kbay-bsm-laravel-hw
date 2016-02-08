@@ -27,7 +27,14 @@ class User extends Authenticatable
     /**
      * M2M relation with Group
      */
-    public function roles(){
+    public function groups(){
         return $this->belongsToMany('App\Group', 'user_groups');
+    }
+
+    /**
+     * M2M relation with Category
+     */
+    public function categories(){
+        return $this->belongsToMany('App\Category', 'user_categories');
     }
 }
