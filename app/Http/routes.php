@@ -17,12 +17,26 @@ use Illuminate\Http\Request;
 
 Route::group(['middleware' => ['web']], function () {
     // Default route
-    Route::get('/', function(){ return view('splashpage'); });
+    Route::get('/', function(){ 
+        if (Auth::check()){
+            return redirect('/home');
+        } else {
+            return view('splashpage');
+        }
+    });
 
     // Authentication routes
     Route::get('/login', 'Auth\AuthController@getLogin');
     Route::post('/login', 'Auth\AuthController@postLogin');
-    Route::get('/logout', 'Auth\AuthController@getLogout');
+    Route::get('/logout', function(){
+        /**
+         * modified from http://stackoverflow.com/a/28757857
+         * as default auth/logout wasn't working for me
+         */
+        Auth::logout();
+        Session::flush();
+        return redirect('/');
+    });
 
     // Registration routes
     Route::get('/register', 'Auth\AuthController@getRegister');
@@ -38,14 +52,18 @@ Route::group(['middleware' => ['web']], function () {
 
     // Post-Authentication Homepage
     Route::get('/home', function(){
-        $groups = Group::whereHas('users', function($q){
-            $q->where('id', '=', Auth::id());
-        })->get();
+        if (Auth::check()){
+            $groups = Group::whereHas('users', function($q){
+                $q->where('id', '=', Auth::id());
+            })->get();
 
-        return view('home', [
-            'groups' => $groups,
-            'categories' => Auth::user()->categories()->get(),
-        ]);
+            return view('home', [
+                'groups' => $groups,
+                'categories' => Auth::user()->categories()->get(),
+            ]);
+        } else {
+            return redirect('/');
+        }
     });
 
     // Manage User
@@ -55,28 +73,46 @@ Route::group(['middleware' => ['web']], function () {
      * Change password link will be provided
      */
     Route::get('/edit-account', function(){
-        return view('edit-account', [ 'user' => Auth::user() ]);
+        if (Auth::check()){
+            return view('edit-account', [ 'user' => Auth::user() ]);
+        } else {
+            return redirect('/');
+        }
     });
     /**
      * POST /edit-account
      * Update name or email for authenticated user
      */
     Route::post('/edit-account', function(Request $request){
-        $v = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'email' => 'required|max:255',
-        ]);
+        if (Auth::check()){
+            $v = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+                'email' => 'required|max:255',
+            ]);
 
-        if ($v->fails()){
-            return redirect()->back()->withInput()->withErrors($v);
+            if ($v->fails()){
+                return redirect()->back()->withInput()->withErrors($v);
+            }
+
+            $user = Auth::user();
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->save();
+
+            return redirect()->back();
+        } else {
+            return redirect('/');
         }
-
-        $user = Auth::user();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->save();
-
-        return redirect()->back();
+    });
+    /**
+     * DELETE /user/{id}
+     * Delete the user corresponding to {id}
+     */
+    Route::delete('/user/{id}', function($id){
+        if (Auth::check()){
+            Auth::user()->delete();
+        }
+        return redirect('/');
     });
 
     // Manage Groups
@@ -87,64 +123,84 @@ Route::group(['middleware' => ['web']], function () {
      * Present form for creating new group
      */
     Route::get('/groups', function(){
-        $groups = Group::whereHas('users', function($q){
-            $q->where('id', '=', Auth::id());
-        })->get();
+        if (Auth::check()){
+            $groups = Group::whereHas('users', function($q){
+                $q->where('id', '=', Auth::id());
+            })->get();
 
-        return view('groups', ['groups' => $groups]);
+            return view('groups', ['groups' => $groups]);
+        } else {
+            return redirect('/');
+        }
     });
     /**
      * POST /groups
      * Create a new group and add authenticated user to it
      */
     Route::post('/groups', function(Request $request){
-        $v = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-        ]);
+        if (Auth::check()){
+            $v = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+            ]);
 
-        if ($v->fails()){
-            return redirect()->back()->withInput()->withErrors($v);
+            if ($v->fails()){
+                return redirect()->back()->withInput()->withErrors($v);
+            }
+
+            // Create New Group
+            $group = new Group;
+            $group->name = $request->name;
+            $group->description = trim($request->description);
+            $group->save();
+            $group->users()->save(Auth::user());
+
+            return redirect()->back();
+        } else {
+            return redirect('/');
         }
-
-        // Create New Group
-        $group = new Group;
-        $group->name = $request->name;
-        $group->description = trim($request->description);
-        $group->save();
-        $group->users()->save(Auth::user());
-
-        return redirect()->back();
     });
     /**
      * DELETE /group/{id}
      * Delete the group corresponding to {id}
      */
     Route::delete('/group/{id}', function($id){
-        $group = Group::findOrFail($id);
-        $group->users()->where('id', '=', Auth::id())->detach();
+        if (Auth::check()){
+            $group = Group::findOrFail($id);
+            $group->users()->where('id', '=', Auth::id())->detach();
 
-        return redirect('/groups');
+            return redirect('/groups');
+        } else {
+            return redirect('/');
+        }
     });
     /**
      * GET /join-groups
      * List all groups
      */
     Route::get('/join-groups', function(){
-        $groups = Group::all();
+        if (Auth::check()){
+            $groups = Group::all();
 
-        return view('join-groups', ['groups' => $groups]);
+            return view('join-groups', ['groups' => $groups]);
+        } else {
+            redirect('/');
+        }
     });
     /**
      * POST /join-group/{id}
      * Add authenticated user to group corresponding to {id}
      */
     Route::get('/join-group/{id}', function($id){
-        $group = Group::findOrFail($id);
-        $group->users()->save(Auth::user());
+        if (Auth::check()){
+            $group = Group::findOrFail($id);
+            $group->users()->save(Auth::user());
 
-        $groups = Group::all();
+            $groups = Group::all();
 
-        return redirect('/groups');
+            return redirect('/groups');
+        } else {
+            return redirect('/');
+        }
     });
     /**
      * GET /edit-group/{id}
@@ -153,34 +209,42 @@ Route::group(['middleware' => ['web']], function () {
      * Present interface for inviting users to this group
      */
     Route::get('/edit-group/{id}', function($id){
-        $group = Group::findOrFail($id);
-        $users = User::all();
+        if (Auth::check()){
+            $group = Group::findOrFail($id);
+            $users = User::all();
 
-        return view('edit-group', [
-            'group' => $group,
-            'users' => $users,
-        ]);
+            return view('edit-group', [
+                'group' => $group,
+                'users' => $users,
+            ]);
+        } else {
+            return redirect('/');
+        }
     });
     /**
      * POST /edit-group
      * Update name, description, and membership of group with specified {id}
      */
     Route::post('/edit-group', function(Request $request){
-        $group = Group::findOrFail($request->id);
+        if (Auth::check()){
+            $group = Group::findOrFail($request->id);
 
-        $v = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-        ]);
+            $v = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+            ]);
 
-        if ($v->fails()){
-            return redirect()->back()->withInput()->withErrors($v);
+            if ($v->fails()){
+                return redirect()->back()->withInput()->withErrors($v);
+            }
+
+            $group->name = $request->name;
+            $group->description = trim($request->description);
+            $group->save();
+
+            return redirect('/edit-group/'.$request->id);
+        } else {
+            return redirect('/');
         }
-
-        $group->name = $request->name;
-        $group->description = trim($request->description);
-        $group->save();
-
-        return redirect('/edit-group/'.$request->id);
     });
 
     // Manage Categories
@@ -189,21 +253,25 @@ Route::group(['middleware' => ['web']], function () {
      * Create new Category and attach authenticated User to it
      */
     Route::post('/add-category', function(Request $request){
-        $v = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-        ]);
+        if (Auth::check()){
+            $v = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+            ]);
 
-        if ($v->fails()){
-            return redirect('/home')->withInput()->withErrors($v);
+            if ($v->fails()){
+                return redirect('/home')->withInput()->withErrors($v);
+            }
+
+            $category = new Category;
+            $category->name = $request->name;
+            $category->description = trim($request->description);
+            $category->user_id = Auth::id();
+            $category->save();
+
+            return redirect('/home');
+        } else {
+            return redirect('/');
         }
-
-        $category = new Category;
-        $category->name = $request->name;
-        $category->description = trim($request->description);
-        $category->user_id = Auth::id();
-        $category->save();
-
-        return redirect('/home');
     });
     /**
      * GET /edit-category/{id}
@@ -212,43 +280,55 @@ Route::group(['middleware' => ['web']], function () {
      * Present interface for adding bookmarks to this Category
      */
     Route::get('/edit-category/{id}', function($id){
-        $category = Category::findOrFail($id);
+        if (Auth::check()){
+            $category = Category::findOrFail($id);
 
-        return view('edit-category', [
-            'category' => $category,
-            'bookmarks' => $category->bookmarks()->get(),
-        ]);
+            return view('edit-category', [
+                'category' => $category,
+                'bookmarks' => $category->bookmarks()->get(),
+            ]);
+        } else {
+            return redirect('/');
+        }
     });
     /**
      * POST /edit-category
      * Update name, description, and bookmarks for category with specified {id}
      */
     Route::post('/edit-category', function(Request $request){
-        $category = Category::findOrFail($request->id);
+        if (Auth::check()){
+            $category = Category::findOrFail($request->id);
 
-        $v = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-        ]);
+            $v = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+            ]);
 
-        if ($v->fails()){
-            return redirect()->back()->withInput()->withErrors($v);
+            if ($v->fails()){
+                return redirect()->back()->withInput()->withErrors($v);
+            }
+
+            $category->name = $request->name;
+            $category->description = trim($request->description);
+            $category->save();
+
+            return redirect('/home');
+        } else {
+            return redirect('/');
         }
-
-        $category->name = $request->name;
-        $category->description = trim($request->description);
-        $category->save();
-
-        return redirect('/home');
     });
     /**
      * DELETE /category/{id}
      * Delete the category at the associated {id}
      */
     Route::delete('/category/{id}', function($id){
-        $category = Category::findOrFail($id);
-        $category->users()->detach();
-        $category->delete();
-        return redirect('/home');
+        if (Auth::check()){
+            $category = Category::findOrFail($id);
+            $category->bookmarks()->detach();
+            $category->delete();
+            return redirect('/home');
+        } else {
+            return redirect('/');
+        }
     });
 
 
@@ -258,68 +338,84 @@ Route::group(['middleware' => ['web']], function () {
      * Create new Bookmark in selected Category
      */
     Route::post('/add-bookmark', function(Request $request){
-        $category = Category::findOrFail($request->category_id);
-        $v = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'url' => 'required|max:255',
-        ]);
+        if (Auth::check()){
+            $category = Category::findOrFail($request->category_id);
+            $v = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+                'url' => 'required|max:255',
+            ]);
 
-        if ($v->fails()){
-            return redirect()->back()->withInput()->withErrors($v);
+            if ($v->fails()){
+                return redirect()->back()->withInput()->withErrors($v);
+            }
+
+            $bookmark = new Bookmark;
+            $bookmark->name = $request->name;
+            $bookmark->url = $request->url;
+            $bookmark->description = trim($request->description);
+            $bookmark->user_id = Auth::id();
+            $bookmark->save();
+            $bookmark->categories()->save($category);
+
+            return redirect()->back();
+        } else {
+            return redirect('/');
         }
-
-        $bookmark = new Bookmark;
-        $bookmark->name = $request->name;
-        $bookmark->url = $request->url;
-        $bookmark->description = trim($request->description);
-        $bookmark->user_id = Auth::id();
-        $bookmark->save();
-        $bookmark->categories()->save($category);
-
-        return redirect()->back();
     });
     /**
      * GET /edit-bookmark/{id}
      * Present edit form for bookmark corresponding to {id}
      */
     Route::get('/edit-bookmark/{id}', function($id){
-        $bookmark = Bookmark::findOrFail($id);
+        if (Auth::check()){
+            $bookmark = Bookmark::findOrFail($id);
 
-        return view('edit-bookmark', [
-            'bookmark' => $bookmark,
-        ]);
+            return view('edit-bookmark', [
+                'bookmark' => $bookmark,
+            ]);
+        } else {
+            return redirect('/');
+        }
     });
     /**
      * POST /edit-bookmark
      * Update name, description, and urls for bookmark with specified {id}
      */
     Route::post('/edit-bookmark', function(Request $request){
-        $bookmark = Bookmark::findOrFail($request->id);
+        if (Auth::check()){
+            $bookmark = Bookmark::findOrFail($request->id);
 
-        $v = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'url' => 'required|max:255',
-        ]);
+            $v = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+                'url' => 'required|max:255',
+            ]);
 
-        if ($v->fails()){
-            return redirect()->back()->withInput()->withErrors($v);
+            if ($v->fails()){
+                return redirect()->back()->withInput()->withErrors($v);
+            }
+
+            $bookmark->name = $request->name;
+            $bookmark->url = $request->url;
+            $bookmark->description = trim($request->description);
+            $bookmark->save();
+
+            return redirect('/home');
+        } else {
+            return redirect('/');
         }
-
-        $bookmark->name = $request->name;
-        $bookmark->url = $request->url;
-        $bookmark->description = trim($request->description);
-        $bookmark->save();
-
-        return redirect('/home');
     });
     /**
      * DELETE /bookmark/{id}
      * Delete the bookmark at the associated {id}
      */
     Route::delete('/bookmark/{id}', function($id){
-        $bookmark = Bookmark::findOrFail($id);
-        $bookmark->categories()->detach();
-        $bookmark->delete();
-        return redirect('/home');
+        if (Auth::check()){
+            $bookmark = Bookmark::findOrFail($id);
+            $bookmark->categories()->detach();
+            $bookmark->delete();
+            return redirect('/home');
+        } else {
+            return redirect('/');
+        }
     });
 });

@@ -14,10 +14,13 @@
     integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
     crossorigin="anonymous">
     @if ($show_logo)
-        @include('layouts.logostyles')
+    <!-- Google Fonts 'Chewy' (for "logo") -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Chewy">
+    <link rel="stylesheet" href="{{ url('css/logostyle.css') }}">
     @else
         <style>form { margin-top: 5%; }</style>
     @endif
+    <link rel="stylesheet" href="{{ url('css/style.css') }}">
     @yield('extrastyles')
   </head>
   <body>

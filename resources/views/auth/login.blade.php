@@ -8,22 +8,22 @@
     <div class="row">
       <div id="login-block" class="col-sm-4 col-sm-push-4">
         <div class="form-group">
-            <label for="email">Email Address: </label>
-            <input type="email" name="email" id="email" class="form-control"
+            <label for="log_email">Email Address</label>
+            <input type="email" name="email" id="log_email" class="form-control"
                    value="{{ old('email') }}">
         </div>{{-- .form-group --}}
         <div class="form-group">
-            <label for="password">Password: </label>
+            <label for="log_password">Password</label>
             <input type="password" class="form-control"
-                   name="password" id="password">
+                   name="password" id="log_password">
         </div>{{-- .form-group --}}
         <div class="form-group">
           <div class="col-sm-6">
             <input type="checkbox" name="remember" id="remember">
-            <label for="remember">Remember Me</label>
+            <label class="no-colon" for="remember">Remember Me</label>
           </div>{{-- .col-sm-6 --}}
           <div class="col-sm-6">
-            <button class="btn btn-block btn-success" 
+            <button class="btn btn-block btn-success" id="reg_submit"
                     type="submit">Log In</button>
           </div>{{-- .col-sm-6 --}}
         </div>{{-- .form-group --}}

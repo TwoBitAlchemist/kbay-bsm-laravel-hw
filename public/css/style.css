@@ -1,0 +1,6 @@
+label:after {
+    content: ': ';
+}
+label.no-colon:after {
+    content: '';
+}
