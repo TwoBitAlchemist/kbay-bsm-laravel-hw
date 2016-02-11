@@ -313,7 +313,7 @@ Route::group(['middleware' => ['web']], function () {
             $category->description = trim($request->description);
             $category->save();
 
-            return redirect('/home');
+            return redirect()->back();
         } else {
             return redirect('/');
         }
@@ -417,7 +417,7 @@ Route::group(['middleware' => ['web']], function () {
             $bookmark = Bookmark::findOrFail($id);
             $bookmark->categories()->detach();
             $bookmark->delete();
-            return redirect('/home');
+            return redirect()->back();
         } else {
             return redirect('/');
         }

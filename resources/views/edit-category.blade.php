@@ -56,7 +56,10 @@
   </form>
   </div>{{-- #main --}}
   <div id="sidebar" class="col-xs-4">
-  <h2>Editing Category: <br>{{ $category->name }}</h2>
+  <h2>
+    Editing Category: <br>{{ $category->name }}<br>
+    <small>{{ $category->description }}</small>
+  </h2>
   <form method="post" id="edit-category-form"
         action="{{ url('edit-category') }}">
     {{ csrf_field() }}
@@ -68,9 +71,8 @@
     </div>{{-- .form-group --}}
     <div class="form-group">
       <label for="category-description">Category Description</label>
-      <textarea class="form-control" name="description"
-                id="category-description" rows="5"
-                placeholder="{{ $category->description }}"></textarea>
+      <textarea class="form-control" name="description" rows="5"
+                id="category-description">{{ $category->description }}</textarea>
     </div>{{-- .form-group --}}
     <div class="form-group">
       <button type="submit" class="btn btn-lg btn-success">Save Changes</button>

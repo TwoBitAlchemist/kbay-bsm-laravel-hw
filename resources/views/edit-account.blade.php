@@ -14,12 +14,12 @@
       action="{{ url('edit-account') }}">
   {{ csrf_field() }}
   <div class="form-group">
-    <label for="user-name">User Name: </label>
+    <label for="user-name">User Name</label>
     <input type="text" name="name" id="user-name"
            class="form-control" value="{{ $user->name }}">
   </div>{{-- .form-group --}}
   <div class="form-group">
-    <label for="user-email">User Email: </label>
+    <label for="user-email">User Email</label>
     <input type="text" name="email" id="user-email"
            class="form-control" value="{{ $user->email }}">
   </div>{{-- .form-group --}}

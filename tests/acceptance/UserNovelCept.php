@@ -27,3 +27,37 @@ $I->fillField('Category Name', 'Test Category');
 $I->click('Add Category');
 $I->seeCurrentUrlEquals('/home');
 $I->see('Test Category');
+
+$I->wantTo('add another category');
+$I->fillField('Category Name', 'My Next Category');
+$I->fillField('Category Description', 'I can put whatever I want here???');
+$I->click('Add Category');
+$I->seeCurrentUrlEquals('/home');
+$I->see('My Next Category');
+$I->see('I can put whatever I want');
+
+$I->wantTo('add a bookmark to Test Category');
+$I->click('Test Category');
+$I->seeInCurrentUrl('edit-category');
+$I->see('This category has 0 bookmarks.');
+$I->see('Add a Bookmark to this Category:');
+$I->fillField('Bookmark Name', 'Laravel');
+$I->fillField('Bookmark URL', 'https://laravel.com/');
+$I->fillField('Bookmark Description', 'The PHP Framework for Web Artisans');
+$I->click('Add Bookmark');
+$I->seeInCurrentUrl('edit-category');
+$I->see('This category has 1 bookmark.');
+$I->see('Laravel');
+$I->see('The PHP Framework for Web Artisans');
+
+$I->wantTo('change the category description while I\'m here');
+$I->see('Editing Category: Test Category');
+$I->fillField('Category Description', 'The best damn category, period.');
+$I->click('Save Changes');
+$I->seeInCurrentUrl('edit-category');
+$I->see('The best damn category, period.');
+
+$I->wantTo('remove that bookmark I added.');
+$I->click('Remove');
+$I->seeInCurrentUrl('edit-category');
+$I->see('This category has 0 bookmarks.');
