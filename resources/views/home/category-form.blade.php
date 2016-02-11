@@ -8,8 +8,9 @@
   </div>{{-- .form-group --}}
   <div class="form-group">
     <label for="description">Category Description</label>
-    <textarea class="form-control" name="description" rows="5"
-              id="category-description">No description yet.</textarea>
+    <textarea class="form-control" name="description"
+              id="category-description" rows="5"
+              placeholder="No description yet."></textarea>
   </div>{{-- .form-group --}}
   <div class="form-group">
     <button type="submit" class="btn btn-lg btn-success">Add Category</button>

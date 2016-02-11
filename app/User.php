@@ -37,4 +37,11 @@ class User extends Authenticatable
     public function categories(){
         return $this->hasMany('App\Category');
     }
+
+    /**
+     * 12M relation with Notification
+     */
+    public function notifications(){
+        return $this->hasMany('App\Notification');
+    }
 }

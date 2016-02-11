@@ -27,4 +27,23 @@
     <button type="submit" class="btn btn-lg btn-success">Save Changes</button>
   </div>{{-- .form-group --}}
 </form>
+<h2>Share This Bookmark with Other Users:</h2>
+  <ul id="invite">
+    @foreach ($users as $user)
+      <li>
+        <form method="post" action="{{ url('send-message') }}">
+            {{ csrf_field() }}
+            <input type="hidden" name="user_id" value="{{ $user->id }}">
+            <input type="hidden" name="message"
+                value="{{ Auth::user()->name }} has suggested you
+                add this bookmark:
+                     <a href='{{ $bookmark->url }}'
+                        title='{{ $bookmark->description}}'>{{ $bookmark->name }}
+                     </a>">
+            <button class="btn btn-lg btn-primary"
+                type="submit">{{ $user->name }}</button>
+        </form>
+      </li>
+    @endforeach
+  </ul>
 @endsection

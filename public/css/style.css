@@ -1,6 +1,29 @@
+dd {
+    margin: 0.5em auto;
+}
 label:after {
     content: ': ';
 }
 label.no-colon:after {
     content: '';
+}
+
+#invite li {
+    display: inline-block;
+    list-style-type: none;
+    margin: auto 1.5em;
+}
+#sidebar li {
+    color: #aaa;
+    list-style-type: square;
+    margin: 0.25em auto;
+}
+#sidebar li a {
+    box-shadow: 1px 1px 3px #999;
+    border-radius: 8px;
+    cursor: pointer;
+    display: block;
+    padding: 1.5em 1.5em;
+    /* shift left border to encompass bullet */
+    margin-left: -1.5em;
 }

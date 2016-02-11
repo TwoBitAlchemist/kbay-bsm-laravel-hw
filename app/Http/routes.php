@@ -12,6 +12,7 @@
 use App\Bookmark;
 use App\Category;
 use App\Group;
+use App\Notification;
 use App\User;
 use Illuminate\Http\Request;
 
@@ -60,6 +61,7 @@ Route::group(['middleware' => ['web']], function () {
             return view('home', [
                 'groups' => $groups,
                 'categories' => Auth::user()->categories()->get(),
+                'notifications' => Auth::user()->notifications()->get(),
             ]);
         } else {
             return redirect('/');
@@ -187,7 +189,7 @@ Route::group(['middleware' => ['web']], function () {
         }
     });
     /**
-     * POST /join-group/{id}
+     * GET /join-group/{id}
      * Add authenticated user to group corresponding to {id}
      */
     Route::get('/join-group/{id}', function($id){
@@ -211,7 +213,7 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/edit-group/{id}', function($id){
         if (Auth::check()){
             $group = Group::findOrFail($id);
-            $users = User::all();
+            $users = User::where('id', '!=', Auth::id())->get();
 
             return view('edit-group', [
                 'group' => $group,
@@ -369,9 +371,11 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/edit-bookmark/{id}', function($id){
         if (Auth::check()){
             $bookmark = Bookmark::findOrFail($id);
+            $users = User::where('id', '!=', Auth::id())->get();
 
             return view('edit-bookmark', [
                 'bookmark' => $bookmark,
+                'users' => $users,
             ]);
         } else {
             return redirect('/');
@@ -414,6 +418,39 @@ Route::group(['middleware' => ['web']], function () {
             $bookmark->categories()->detach();
             $bookmark->delete();
             return redirect('/home');
+        } else {
+            return redirect('/');
+        }
+    });
+
+    /**
+     * POST /send-message
+     * Send a message to another user
+     */
+    Route::post('/send-message', function(Request $request){
+        if (Auth::check()){
+            $target_user = User::findOrFail($request->user_id);
+            $notify = new Notification;
+            $notify->user_id = $target_user->id;
+            /* would probably sanitize this input more in a real system */
+            $notify->message = trim($request->message);
+            $notify->read = false;
+            $notify->save();
+        } else {
+            return redirect('/');
+        }
+    });
+    /**
+     * GET /messages/unread
+     * View unread messages for authenticated user
+     */
+    Route::get('/messages/unread', function(){
+        if (Auth::check()){
+            $notifications = Auth::user()->notifications()
+                                         ->where(['read' => false])->get();
+            return view('unread-messages', [
+                'notifications' => $notifications,
+            ]);
         } else {
             return redirect('/');
         }

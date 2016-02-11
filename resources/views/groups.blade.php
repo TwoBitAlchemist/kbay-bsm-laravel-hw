@@ -5,9 +5,14 @@
 <a href="{{ url('home') }}">&larr; Back to Home</a>
 @if (count($groups) > 1)
   <p>You are a member of {{ count($groups) }} groups.</p>
-  <ul>
+  <ul class="row list-unstyled">
     @foreach ($groups as $group)
-      <li><a href="/edit-group/{{ $group->id }}">{{ $group->name }}</a></li>
+      <li class="col-sm-4">
+      <dl>
+        <dt><a href="/edit-group/{{ $group->id }}">{{ $group->name }}</a></dt>
+        <dd>{{ $group->description }}</dd>
+      </dl>
+      </li>
     @endforeach
   </ul>
 @elseif (count($groups) === 1)
@@ -25,11 +30,11 @@
 <form id="create-group-form" action="{{ url('groups') }}" method="post">
   {{ csrf_field() }}
   <div class="form-group">
-    <label for="name">Group Name: </label>
+    <label for="name">Group Name</label>
     <input type="text" name="name" id="group-name" class="form-control">
   </div>{{-- .form-group --}}
   <div class="form-group">
-    <label for="description">Group Description: </label>
+    <label for="description">Group Description</label>
     <textarea cols="80" rows="5" class="form-control"
               name="description" id="group-description"
               placeholder="This group has no description yet."></textarea>
