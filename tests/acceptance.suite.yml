@@ -10,3 +10,4 @@ modules:
         - PhpBrowser:
             url: http://php-bookmarks.app
         - \Helper\Acceptance
+        - Db

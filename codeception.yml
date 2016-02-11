@@ -15,7 +15,7 @@ extensions:
 modules:
     config:
         Db:
-            dsn: ''
-            user: ''
-            password: ''
+            dsn: 'pgsql:host=localhost;port=5432;dbname=homestead'
+            user: 'homestead'
+            password: 'secret'
             dump: tests/_data/dump.sql

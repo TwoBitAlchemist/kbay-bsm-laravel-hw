@@ -3,11 +3,11 @@
       action="{{ url('add-category') }}">
   {{ csrf_field() }}
   <div class="form-group">
-    <label for="name">Category Name</label>
+    <label for="category-name">Category Name</label>
     <input type="text" name="name" id="category-name" class="form-control">
   </div>{{-- .form-group --}}
   <div class="form-group">
-    <label for="description">Category Description</label>
+    <label for="category-description">Category Description</label>
     <textarea class="form-control" name="description"
               id="category-description" rows="5"
               placeholder="No description yet."></textarea>

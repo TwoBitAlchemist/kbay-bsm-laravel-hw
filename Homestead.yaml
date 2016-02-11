@@ -1,0 +1,36 @@
+---
+ip: "192.168.10.10"
+memory: 2048
+cpus: 1
+hostname: kbay-bsm-laravel-hw
+name: kbay-bsm-laravel-hw
+provider: virtualbox
+
+authorize: ~/.ssh/id_ecdsa.pub
+
+keys:
+    - ~/.ssh/id_ecdsa
+
+folders:
+    - map: "/home/zuul/kbay_bsm_laravel_hw"
+      to: "/home/vagrant/kbay-bsm-laravel-hw"
+
+sites:
+    - map: php-bookmarks.app
+      to: "/home/vagrant/kbay-bsm-laravel-hw/php-bookmarks/public"
+
+databases:
+    - homestead
+
+# blackfire:
+#     - id: foo
+#       token: bar
+#       client-id: foo
+#       client-token: bar
+
+# ports:
+#     - send: 50000
+#       to: 5000
+#     - send: 7777
+#       to: 777
+#       protocol: udp
